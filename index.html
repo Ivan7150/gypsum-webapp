@@ -73,7 +73,7 @@
       if (cbb) result += `CBB-500: до ${cbbGr.toFixed(1)} г\n`;
       if (tio2) result += `Диоксид титана: до ${tio2Gr.toFixed(1)} г`;
 
-      document.getElementById('output').innerText = result;
+      document.getElementById('output').innerText = result.replace(/\n/g, '\n');
       sendBtn.style.display = "block";
       sendBtn.onclick = () => tg.sendData(result);
     }
