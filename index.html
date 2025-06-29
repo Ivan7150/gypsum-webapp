@@ -1,78 +1,85 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GypsumX UltraMix Калькулятор</title>
+  <meta charset="UTF-8">
+  <title>Калькулятор гипса</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #111;
-      color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #000; color: white; }
+    .container { max-width: 420px; margin: 0 auto; padding: 20px; background-color: #111; }
+    h2 { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+    label { display: block; margin-top: 15px; font-size: 14px; }
+    input[type="number"], select {
+      width: 100%; padding: 8px; margin-top: 5px; font-size: 16px;
+      border: none; border-radius: 4px; background-color: #fff; color: #000;
     }
-    h1 {
-      color: #4facfe;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .calc-box {
-      background: #1a1a1a;
-      padding: 20px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 0 20px rgba(0, 128, 255, 0.1);
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background-color: #222;
-      color: #fff;
-      font-size: 16px;
-      outline: none;
-      box-shadow: inset 0 0 5px #4facfe;
-    }
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      margin-top: 10px;
-    }
-    .checkbox-group label {
-      display: flex;
-      align-items: center;
-      font-size: 14px;
-    }
-    .checkbox-group input {
-      margin-right: 10px;
-    }
+    .checkbox-group { margin-top: 10px; }
+    .checkbox-group label { display: flex; align-items: center; font-size: 14px; }
+    .checkbox-group input { margin-right: 8px; }
     button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
+      margin-top: 20px; width: 100%; background-color: #1d4ed8;
+      color: white; border: none; padding: 12px; font-size: 16px;
+      font-weight: bold; border-radius: 4px; cursor: pointer;
     }
-    button:hover {
-      opacity: 0.9;
+    .results { margin-top: 20px; background-color: #000; padding: 15px; font-size: 15px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Калькулятор литейщика</h2>
+
+    <label>Объём формы (мл)</label>
+    <input type="number" id="volume" value="100" min="1">
+
+    <label>Вид окрашивания</label>
+    <select id="colorType">
+      <option value="none">Поверхностное окрашивание</option>
+      <option value="pigment">Сухой железоокисный пигмент</option>
+      <option value="koler">Жидкий колер</option>
+    </select>
+
+    <div class="checkbox-group">
+      <label><input type="checkbox" id="cbb"> CBB-500</label>
+      <label><input type="checkbox" id="tio2"> Диоксид титана</label>
+    </div>
+
+    <button onclick="calculate()">РАССЧИТАТЬ</button>
+    <button id="send" style="display:none">ОТПРАВИТЬ В ЧАТ</button>
+
+    <div class="results" id="output">Результаты появятся здесь</div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    const sendBtn = document.getElementById("send");
+
+    function calculate() {
+      const volume = parseFloat(document.getElementById('volume').value);
+      const k = volume / 100;
+      const colorType = document.getElementById('colorType').value;
+      const cbb = document.getElementById('cbb').checked;
+      const tio2 = document.getElementById('tio2').checked;
+
+      const gips = cbb ? 192 * k : 170 * k;
+      const water = cbb ? 58 * k : 85 * k;
+      const color = colorType === "koler" ? (cbb ? 10 : 7) * k :
+                    colorType === "pigment" ? (cbb ? 10 : 9) * k : 0;
+      const cbbGr = cbb ? 6 * k : 0;
+      const tio2Gr = tio2 ? (cbb ? 4 : (colorType === "none" ? 12 : 4)) * k : 0;
+
+      let result = `📐 Расчёт для ${volume} мл:\nГипс: ${gips.toFixed(1)} г\nВода: ${water.toFixed(1)} мл\n`;
+      if (colorType === "koler") result += `Колер: до ${color.toFixed(1)} г\n`;
+      if (colorType === "pigment") result += `Пигмент: до ${color.toFixed(1)} г\n`;
+      if (cbb) result += `CBB-500: до ${cbbGr.toFixed(1)} г\n`;
+      if (tio2) result += `Диоксид титана: до ${tio2Gr.toFixed(1)} г`;
+
+      document.getElementById('output').innerText = result;
+      sendBtn.style.display = "block";
+      sendBtn.onclick = () => tg.sendData(result);
     }
-    .results {
-      margi
+
+    tg.ready();
+  </script>
+</body>
+</html>
